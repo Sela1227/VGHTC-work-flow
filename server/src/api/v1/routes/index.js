@@ -7,6 +7,8 @@ const caseRoutes = require('./caseRoutes');
 const pointsRoutes = require('./pointsRoutes');
 const caseTypeRoutes = require('./caseTypeRoutes');
 const reportRoutes = require('./reportRoutes');
+const auditRoutes = require('./auditRoutes');
+const importRoutes = require('./importRoutes');
 
 // 認證
 router.use('/auth', authRoutes);
@@ -26,6 +28,12 @@ router.use('/case-types', caseTypeRoutes);
 // 報表
 router.use('/reports', reportRoutes);
 
+// 操作日誌
+router.use('/audit', auditRoutes);
+
+// 匯入
+router.use('/import', importRoutes);
+
 // API 資訊
 router.get('/', (req, res) => {
   res.json({
@@ -38,6 +46,8 @@ router.get('/', (req, res) => {
       points: '/api/v1/points',
       caseTypes: '/api/v1/case-types',
       reports: '/api/v1/reports',
+      audit: '/api/v1/audit',
+      import: '/api/v1/import',
     },
   });
 });

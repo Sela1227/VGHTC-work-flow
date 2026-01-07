@@ -6,12 +6,12 @@ export default function MainLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-sela-light">
+    <div className="min-h-screen bg-gray-100">
       <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* 主要內容區 */}
-      <main className="md:ml-64 pt-16 min-h-screen">
+      <main className="md:ml-64 pt-16 min-h-screen bg-gray-50">
         <div className="p-4 md:p-6 lg:p-8">
           {children}
         </div>

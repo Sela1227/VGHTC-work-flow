@@ -10,7 +10,6 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
-  Users,
   ArrowRight,
   TrendingUp,
   BarChart3,
@@ -22,6 +21,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState(null);
   const [unconfirmedCases, setUnconfirmedCases] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const isAdmin = ['super_admin', 'admin'].includes(user?.role);
 
@@ -43,23 +43,59 @@ export default function DashboardPage() {
   const loadStats = async () => {
     try {
       setLoading(true);
+      setError(null);
       
       const dashboardData = await reportService.getDashboardStats();
       setStats(dashboardData);
 
-      // 管理者取得待確認案件
       if (isAdmin) {
-        const unconfirmed = await caseService.getUnconfirmedCases();
-        setUnconfirmedCases(unconfirmed);
+        try {
+          const unconfirmed = await caseService.getUnconfirmedCases();
+          setUnconfirmedCases(unconfirmed || []);
+        } catch (e) {
+          console.error('載入待確認案件失敗:', e);
+        }
       }
-    } catch (error) {
-      console.error('載入失敗:', error);
+    } catch (err) {
+      console.error('載入失敗:', err);
+      setError(err.message || '載入資料失敗');
     } finally {
       setLoading(false);
     }
   };
 
   const overdueCases = unconfirmedCases.filter(c => c.days_pending >= 7);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sela-orange mx-auto mb-4"></div>
+          <p className="text-gray-500">載入中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-gradient-to-r from-sela-orange to-orange-400 rounded-2xl p-6 text-white">
+          <h1 className="text-2xl font-bold mb-2">歡迎回來，{user?.name}！</h1>
+          <p className="text-orange-100">{roleLabels[user?.role]} · {currentMonth}</p>
+        </div>
+        <Card className="text-center py-12">
+          <p className="text-red-500 mb-4">❌ {error}</p>
+          <button 
+            onClick={loadStats}
+            className="px-4 py-2 bg-sela-orange text-white rounded-lg hover:bg-orange-600"
+          >
+            重試
+          </button>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -104,7 +140,7 @@ export default function DashboardPage() {
           <div>
             <p className="text-sm text-gray-500">平均剩餘點數</p>
             <p className="text-2xl font-bold text-gray-800">
-              {loading ? '-' : parseFloat(stats?.pointsStats?.avg_points || 31).toFixed(1)}
+              {parseFloat(stats?.pointsStats?.avg_points || 31).toFixed(1)}
             </p>
           </div>
         </Card>
@@ -116,7 +152,7 @@ export default function DashboardPage() {
           <div>
             <p className="text-sm text-gray-500">本月案件</p>
             <p className="text-2xl font-bold text-gray-800">
-              {loading ? '-' : stats?.cases?.total_cases || 0}
+              {stats?.cases?.total_cases || 0}
             </p>
           </div>
         </Card>
@@ -128,7 +164,7 @@ export default function DashboardPage() {
           <div>
             <p className="text-sm text-gray-500">已完成</p>
             <p className="text-2xl font-bold text-gray-800">
-              {loading ? '-' : stats?.cases?.completed_cases || 0}
+              {stats?.cases?.completed_cases || 0}
             </p>
           </div>
         </Card>
@@ -140,7 +176,7 @@ export default function DashboardPage() {
           <div>
             <p className="text-sm text-gray-500">進行中</p>
             <p className="text-2xl font-bold text-gray-800">
-              {loading ? '-' : stats?.cases?.pending_cases || 0}
+              {stats?.cases?.pending_cases || 0}
             </p>
           </div>
         </Card>
@@ -208,35 +244,6 @@ export default function DashboardPage() {
         </Link>
 
         {isAdmin && (
-          <Link to="/unconfirmed">
-            <Card className={`hover:shadow-md transition-shadow cursor-pointer h-full ${
-              unconfirmedCases.length > 0 ? 'border-orange-200' : ''
-            }`}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`p-3 rounded-xl ${
-                    unconfirmedCases.length > 0 ? 'bg-orange-100' : 'bg-gray-100'
-                  }`}>
-                    <AlertCircle className={
-                      unconfirmedCases.length > 0 ? 'text-orange-500' : 'text-gray-500'
-                    } size={24} />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-800">待確認案件</h3>
-                    <p className="text-sm text-gray-500">
-                      {unconfirmedCases.length > 0 
-                        ? `${unconfirmedCases.length} 件待處理` 
-                        : '目前無待確認'}
-                    </p>
-                  </div>
-                </div>
-                <ArrowRight className="text-gray-400" size={20} />
-              </div>
-            </Card>
-          </Link>
-        )}
-
-        {isAdmin && (
           <Link to="/reports">
             <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
               <div className="flex items-center justify-between">
@@ -280,14 +287,6 @@ export default function DashboardPage() {
                 {stats?.staffCount || 0} 人
               </span>
             </div>
-            {overdueCases.length > 0 && (
-              <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                <span className="text-gray-700">超過 7 天未確認</span>
-                <span className="px-3 py-1 rounded-full text-sm bg-red-500 text-white">
-                  {overdueCases.length} 件
-                </span>
-              </div>
-            )}
           </div>
         </Card>
       )}

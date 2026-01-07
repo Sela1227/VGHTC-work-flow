@@ -10,6 +10,8 @@ import {
   BarChart3,
   AlertCircle,
   Wrench,
+  History,
+  Upload,
   X,
 } from 'lucide-react';
 
@@ -27,10 +29,12 @@ export default function Sidebar({ isOpen, onClose }) {
   if (isAdmin) {
     menuItems.push(
       { to: '/unconfirmed', icon: AlertCircle, label: '待確認案件', highlight: true },
+      { to: '/import', icon: Upload, label: '批次匯入' },
       { to: '/points', icon: Calculator, label: '點數管理' },
       { to: '/reports', icon: TrendingUp, label: '月報表' },
       { to: '/staff', icon: Users, label: '同仁管理' },
       { to: '/case-types', icon: Settings, label: '案件類型' },
+      { to: '/audit', icon: History, label: '操作日誌' },
       { to: '/system', icon: Wrench, label: '系統設定' },
     );
   }
@@ -45,7 +49,7 @@ export default function Sidebar({ isOpen, onClose }) {
       )}
 
       <aside
-        className={`fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 bg-white border-r border-gray-200 z-40 transform transition-transform duration-200 ${
+        className={`fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 bg-white border-r border-gray-200 z-40 transform transition-transform duration-200 overflow-y-auto ${
           isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >

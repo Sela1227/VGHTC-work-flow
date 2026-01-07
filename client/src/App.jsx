@@ -7,10 +7,12 @@ import DashboardPage from './pages/DashboardPage';
 import MyStatsPage from './pages/MyStatsPage';
 import CasesPage from './pages/cases/CasesPage';
 import UnconfirmedPage from './pages/cases/UnconfirmedPage';
+import ImportPage from './pages/cases/ImportPage';
 import PointsPage from './pages/points/PointsPage';
 import StaffPage from './pages/staff/StaffPage';
 import CaseTypesPage from './pages/settings/CaseTypesPage';
 import SystemPage from './pages/settings/SystemPage';
+import AuditLogPage from './pages/settings/AuditLogPage';
 import ReportsPage from './pages/reports/ReportsPage';
 import Loading from './components/common/Loading';
 
@@ -57,10 +59,12 @@ function App() {
         {isAdmin && (
           <>
             <Route path="/unconfirmed" element={<UnconfirmedPage />} />
+            <Route path="/import" element={<ImportPage />} />
             <Route path="/points" element={<PointsPage />} />
             <Route path="/staff" element={<StaffPage />} />
             <Route path="/case-types" element={<CaseTypesPage />} />
             <Route path="/system" element={<SystemPage />} />
+            <Route path="/audit" element={<AuditLogPage />} />
             <Route path="/reports" element={<ReportsPage />} />
           </>
         )}

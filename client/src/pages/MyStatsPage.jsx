@@ -120,7 +120,7 @@ export default function MyStatsPage() {
                 {/* 簡易長條圖 */}
                 <div className="flex items-end gap-2 h-40 mb-4">
                   {stats.monthlyTrend.slice().reverse().map((m) => {
-                    const maxCases = Math.max(...stats.monthlyTrend.map(t => parseInt(t.total_cases || 0)));
+                    const maxCases = Math.max(...stats.monthlyTrend.map(t => parseInt(t.total_cases || 0)), 1);
                     const height = maxCases > 0 ? (parseInt(m.total_cases || 0) / maxCases * 100) : 0;
                     return (
                       <div key={m.year_month} className="flex-1 flex flex-col items-center">
