@@ -9,7 +9,9 @@ cmds = [
 
 [phases.build]
 cmds = [
-  "cd client && npm run build"
+  "cd client && npm run build",
+  "cd server && npm run db:migrate",
+  "cd server && npm run db:seed"
 ]
 
 [start]
