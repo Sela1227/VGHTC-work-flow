@@ -1,9 +1,26 @@
 const express = require('express');
 const router = express.Router();
-const authRoutes = require('./authRoutes');
 
-// 認證路由
+const authRoutes = require('./authRoutes');
+const userRoutes = require('./userRoutes');
+const caseRoutes = require('./caseRoutes');
+const pointsRoutes = require('./pointsRoutes');
+const caseTypeRoutes = require('./caseTypeRoutes');
+
+// 認證
 router.use('/auth', authRoutes);
+
+// 使用者
+router.use('/users', userRoutes);
+
+// 案件
+router.use('/cases', caseRoutes);
+
+// 點數
+router.use('/points', pointsRoutes);
+
+// 案件類型
+router.use('/case-types', caseTypeRoutes);
 
 // API 資訊
 router.get('/', (req, res) => {
@@ -12,9 +29,10 @@ router.get('/', (req, res) => {
     version: 'v1',
     endpoints: {
       auth: '/api/v1/auth',
-      users: '/api/v1/users (coming soon)',
-      cases: '/api/v1/cases (coming soon)',
-      points: '/api/v1/points (coming soon)',
+      users: '/api/v1/users',
+      cases: '/api/v1/cases',
+      points: '/api/v1/points',
+      caseTypes: '/api/v1/case-types',
     },
   });
 });
