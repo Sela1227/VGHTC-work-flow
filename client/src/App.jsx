@@ -8,6 +8,7 @@ import CasesPage from './pages/cases/CasesPage';
 import PointsPage from './pages/points/PointsPage';
 import StaffPage from './pages/staff/StaffPage';
 import CaseTypesPage from './pages/settings/CaseTypesPage';
+import ReportsPage from './pages/reports/ReportsPage';
 import Loading from './components/common/Loading';
 
 function App() {
@@ -54,6 +55,7 @@ function App() {
             <Route path="/points" element={<PointsPage />} />
             <Route path="/staff" element={<StaffPage />} />
             <Route path="/case-types" element={<CaseTypesPage />} />
+            <Route path="/reports" element={<ReportsPage />} />
           </>
         )}
         

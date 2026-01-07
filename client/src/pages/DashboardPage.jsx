@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import pointsService from '../services/pointsService';
+import reportService from '../services/reportService';
 import caseService from '../services/caseService';
 import Card from '../components/common/Card';
 import {
@@ -12,17 +12,14 @@ import {
   AlertCircle,
   Users,
   ArrowRight,
+  TrendingUp,
+  BarChart3,
 } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const [stats, setStats] = useState({
-    currentPoints: 31,
-    totalCases: 0,
-    completedCases: 0,
-    pendingCases: 0,
-    unconfirmedCases: [],
-  });
+  const [stats, setStats] = useState(null);
+  const [unconfirmedCases, setUnconfirmedCases] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const isAdmin = ['super_admin', 'admin'].includes(user?.role);
@@ -46,30 +43,14 @@ export default function DashboardPage() {
     try {
       setLoading(true);
       
-      // 取得當月點數
-      const pointsData = await pointsService.getCurrentPoints();
-      
-      // 取得案件統計
-      const casesData = isAdmin 
-        ? await caseService.getCases() 
-        : await caseService.getMyCases();
-      
-      const completedCases = casesData.filter(c => c.status === 'completed').length;
-      const pendingCases = casesData.filter(c => c.status === 'assigned').length;
+      const dashboardData = await reportService.getDashboardStats();
+      setStats(dashboardData);
 
       // 管理者取得待確認案件
-      let unconfirmedCases = [];
       if (isAdmin) {
-        unconfirmedCases = await caseService.getUnconfirmedCases();
+        const unconfirmed = await caseService.getUnconfirmedCases();
+        setUnconfirmedCases(unconfirmed);
       }
-
-      setStats({
-        currentPoints: parseFloat(pointsData.current_points || 31),
-        totalCases: casesData.length,
-        completedCases,
-        pendingCases,
-        unconfirmedCases,
-      });
     } catch (error) {
       console.error('載入失敗:', error);
     } finally {
@@ -96,9 +77,9 @@ export default function DashboardPage() {
             <Calculator className="text-sela-orange" size={24} />
           </div>
           <div>
-            <p className="text-sm text-gray-500">剩餘點數</p>
+            <p className="text-sm text-gray-500">平均剩餘點數</p>
             <p className="text-2xl font-bold text-gray-800">
-              {loading ? '-' : stats.currentPoints.toFixed(1)}
+              {loading ? '-' : parseFloat(stats?.pointsStats?.avg_points || 31).toFixed(1)}
             </p>
           </div>
         </Card>
@@ -110,7 +91,7 @@ export default function DashboardPage() {
           <div>
             <p className="text-sm text-gray-500">本月案件</p>
             <p className="text-2xl font-bold text-gray-800">
-              {loading ? '-' : stats.totalCases}
+              {loading ? '-' : stats?.cases?.total_cases || 0}
             </p>
           </div>
         </Card>
@@ -122,7 +103,7 @@ export default function DashboardPage() {
           <div>
             <p className="text-sm text-gray-500">已完成</p>
             <p className="text-2xl font-bold text-gray-800">
-              {loading ? '-' : stats.completedCases}
+              {loading ? '-' : stats?.cases?.completed_cases || 0}
             </p>
           </div>
         </Card>
@@ -134,11 +115,32 @@ export default function DashboardPage() {
           <div>
             <p className="text-sm text-gray-500">進行中</p>
             <p className="text-2xl font-bold text-gray-800">
-              {loading ? '-' : stats.pendingCases}
+              {loading ? '-' : stats?.cases?.pending_cases || 0}
             </p>
           </div>
         </Card>
       </div>
+
+      {/* 案件類型分布 */}
+      {isAdmin && stats?.caseTypeDistribution && (
+        <Card>
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <BarChart3 className="text-sela-orange" size={20} />
+            本月案件類型分布
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {stats.caseTypeDistribution.map((ct) => (
+              <div key={ct.code} className="text-center p-4 bg-gray-50 rounded-lg">
+                <span className="inline-block px-3 py-1 bg-orange-100 text-orange-600 rounded font-bold mb-2">
+                  {ct.code}
+                </span>
+                <p className="text-sm text-gray-500">{ct.name}</p>
+                <p className="text-2xl font-bold text-gray-800">{ct.count || 0}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* 快速連結 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -164,16 +166,16 @@ export default function DashboardPage() {
         </Link>
 
         {isAdmin && (
-          <Link to="/points">
+          <Link to="/reports">
             <Card className="hover:shadow-md transition-shadow cursor-pointer">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-3 bg-blue-100 rounded-xl">
-                    <Calculator className="text-blue-500" size={24} />
+                    <TrendingUp className="text-blue-500" size={24} />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-800">點數管理</h3>
-                    <p className="text-sm text-gray-500">檢視與調整點數</p>
+                    <h3 className="font-semibold text-gray-800">月報表</h3>
+                    <p className="text-sm text-gray-500">工作量統計與匯出</p>
                   </div>
                 </div>
                 <ArrowRight className="text-gray-400" size={20} />
@@ -194,23 +196,27 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
               <span className="text-gray-700">待確認的自主接案</span>
               <span className={`px-3 py-1 rounded-full text-sm ${
-                stats.unconfirmedCases.length > 0 
+                (stats?.cases?.unconfirmed_cases || 0) > 0 
                   ? 'bg-sela-orange text-white' 
                   : 'bg-gray-200 text-gray-500'
               }`}>
-                {stats.unconfirmedCases.length} 件
+                {stats?.cases?.unconfirmed_cases || 0} 件
               </span>
             </div>
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span className="text-gray-700">超過 5 天未確認</span>
-              <span className={`px-3 py-1 rounded-full text-sm ${
-                stats.unconfirmedCases.filter(c => c.days_pending > 5).length > 0 
-                  ? 'bg-red-500 text-white' 
-                  : 'bg-gray-200 text-gray-500'
-              }`}>
-                {stats.unconfirmedCases.filter(c => c.days_pending > 5).length} 件
+              <span className="text-gray-700">活躍同仁數</span>
+              <span className="px-3 py-1 rounded-full text-sm bg-green-100 text-green-600">
+                {stats?.staffCount || 0} 人
               </span>
             </div>
+            {unconfirmedCases.filter(c => c.days_pending > 5).length > 0 && (
+              <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                <span className="text-gray-700">超過 5 天未確認</span>
+                <span className="px-3 py-1 rounded-full text-sm bg-red-500 text-white">
+                  {unconfirmedCases.filter(c => c.days_pending > 5).length} 件
+                </span>
+              </div>
+            )}
           </div>
         </Card>
       )}

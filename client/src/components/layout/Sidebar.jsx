@@ -6,6 +6,7 @@ import {
   Users,
   Settings,
   Calculator,
+  TrendingUp,
   X,
 } from 'lucide-react';
 
@@ -22,6 +23,7 @@ export default function Sidebar({ isOpen, onClose }) {
   if (isAdmin) {
     menuItems.push(
       { to: '/points', icon: Calculator, label: '點數管理' },
+      { to: '/reports', icon: TrendingUp, label: '月報表' },
       { to: '/staff', icon: Users, label: '同仁管理' },
       { to: '/case-types', icon: Settings, label: '案件類型' },
     );

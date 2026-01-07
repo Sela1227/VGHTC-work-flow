@@ -6,6 +6,7 @@ const userRoutes = require('./userRoutes');
 const caseRoutes = require('./caseRoutes');
 const pointsRoutes = require('./pointsRoutes');
 const caseTypeRoutes = require('./caseTypeRoutes');
+const reportRoutes = require('./reportRoutes');
 
 // 認證
 router.use('/auth', authRoutes);
@@ -22,6 +23,9 @@ router.use('/points', pointsRoutes);
 // 案件類型
 router.use('/case-types', caseTypeRoutes);
 
+// 報表
+router.use('/reports', reportRoutes);
+
 // API 資訊
 router.get('/', (req, res) => {
   res.json({
@@ -33,6 +37,7 @@ router.get('/', (req, res) => {
       cases: '/api/v1/cases',
       points: '/api/v1/points',
       caseTypes: '/api/v1/case-types',
+      reports: '/api/v1/reports',
     },
   });
 });
