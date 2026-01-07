@@ -31,12 +31,13 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-// 靜態檔案 (前端)
-app.use(express.static(path.join(__dirname, '../../client/dist')));
+// 靜態檔案 (前端) - 從 client/dist 提供
+const clientPath = path.join(__dirname, '../../client/dist');
+app.use(express.static(clientPath));
 
 // 前端路由 (SPA fallback)
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
+  res.sendFile(path.join(clientPath, 'index.html'));
 });
 
 // 錯誤處理
@@ -44,7 +45,7 @@ app.use(errorHandler);
 
 // 啟動伺服器
 const PORT = config.app.port;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log('==========================================');
   console.log('🏥 臺中榮總放射腫瘤科劑量室工作分配系統');
   console.log('==========================================');
