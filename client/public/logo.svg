@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="30" fill="#F26522"/>
+  <rect x="20" y="60" width="160" height="100" rx="15" fill="none" stroke="white" stroke-width="8"/>
+  <text x="100" y="125" text-anchor="middle" fill="white" font-family="Arial" font-size="48" font-weight="bold">SELA</text>
+  <path d="M45 55 Q35 35 50 25 Q60 20 65 30 L70 40 Q65 35 55 40 Q50 45 55 50 Z" fill="white"/>
+  <circle cx="58" cy="28" r="3" fill="#F26522"/>
+</svg>

@@ -1,0 +1,28 @@
+{
+  "name": "tcvgh-sela-workload-server",
+  "version": "1.0.0",
+  "description": "臺中榮總放射腫瘤科劑量室工作分配系統",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "db:migrate": "node database/scripts/migrate.js",
+    "db:rollback": "node database/scripts/rollback.js",
+    "db:seed": "node database/scripts/seed.js",
+    "db:reset": "npm run db:rollback -- --all && npm run db:migrate && npm run db:seed"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
