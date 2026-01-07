@@ -13,7 +13,6 @@ export default function Navbar({ onMenuClick }) {
   return (
     <nav className="bg-sela-orange text-white shadow-lg sticky top-0 z-50">
       <div className="px-4 h-16 flex items-center justify-between">
-        {/* 左側 - Logo 和標題 */}
         <div className="flex items-center gap-4">
           <button
             onClick={onMenuClick}
@@ -31,7 +30,6 @@ export default function Navbar({ onMenuClick }) {
           </div>
         </div>
 
-        {/* 右側 - 使用者資訊 */}
         <div className="flex items-center gap-4">
           <div className="hidden sm:flex items-center gap-2">
             <User size={20} />
