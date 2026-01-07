@@ -4,10 +4,13 @@ import MainLayout from './components/layout/MainLayout';
 import LoginPage from './pages/auth/LoginPage';
 import ChangePasswordPage from './pages/auth/ChangePasswordPage';
 import DashboardPage from './pages/DashboardPage';
+import MyStatsPage from './pages/MyStatsPage';
 import CasesPage from './pages/cases/CasesPage';
+import UnconfirmedPage from './pages/cases/UnconfirmedPage';
 import PointsPage from './pages/points/PointsPage';
 import StaffPage from './pages/staff/StaffPage';
 import CaseTypesPage from './pages/settings/CaseTypesPage';
+import SystemPage from './pages/settings/SystemPage';
 import ReportsPage from './pages/reports/ReportsPage';
 import Loading from './components/common/Loading';
 
@@ -47,14 +50,17 @@ function App() {
         <Route path="/" element={<DashboardPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/cases" element={<CasesPage />} />
+        <Route path="/my-stats" element={<MyStatsPage />} />
         <Route path="/change-password" element={<ChangePasswordPage />} />
         
         {/* 管理者專用路由 */}
         {isAdmin && (
           <>
+            <Route path="/unconfirmed" element={<UnconfirmedPage />} />
             <Route path="/points" element={<PointsPage />} />
             <Route path="/staff" element={<StaffPage />} />
             <Route path="/case-types" element={<CaseTypesPage />} />
+            <Route path="/system" element={<SystemPage />} />
             <Route path="/reports" element={<ReportsPage />} />
           </>
         )}

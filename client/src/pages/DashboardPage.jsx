@@ -14,6 +14,7 @@ import {
   ArrowRight,
   TrendingUp,
   BarChart3,
+  AlertTriangle,
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -58,6 +59,8 @@ export default function DashboardPage() {
     }
   };
 
+  const overdueCases = unconfirmedCases.filter(c => c.days_pending >= 7);
+
   return (
     <div className="space-y-6">
       {/* 歡迎區塊 */}
@@ -69,6 +72,28 @@ export default function DashboardPage() {
           {roleLabels[user?.role]} · {currentMonth}
         </p>
       </div>
+
+      {/* 逾期警示 */}
+      {isAdmin && overdueCases.length > 0 && (
+        <Link to="/unconfirmed">
+          <Card className="bg-red-50 border-red-200 hover:shadow-md transition-shadow cursor-pointer">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-red-100 rounded-xl">
+                  <AlertTriangle className="text-red-500" size={24} />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-red-700">逾期案件警告</h3>
+                  <p className="text-sm text-red-600">
+                    有 {overdueCases.length} 筆自主接案超過 7 天未確認
+                  </p>
+                </div>
+              </div>
+              <ArrowRight className="text-red-400" size={20} />
+            </div>
+          </Card>
+        </Link>
+      )}
 
       {/* 統計卡片 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -143,9 +168,9 @@ export default function DashboardPage() {
       )}
 
       {/* 快速連結 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <Link to="/cases">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-sela-orange/10 rounded-xl">
@@ -165,9 +190,55 @@ export default function DashboardPage() {
           </Card>
         </Link>
 
+        <Link to="/my-stats">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-purple-100 rounded-xl">
+                  <BarChart3 className="text-purple-500" size={24} />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-800">我的統計</h3>
+                  <p className="text-sm text-gray-500">查看個人工作數據</p>
+                </div>
+              </div>
+              <ArrowRight className="text-gray-400" size={20} />
+            </div>
+          </Card>
+        </Link>
+
+        {isAdmin && (
+          <Link to="/unconfirmed">
+            <Card className={`hover:shadow-md transition-shadow cursor-pointer h-full ${
+              unconfirmedCases.length > 0 ? 'border-orange-200' : ''
+            }`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`p-3 rounded-xl ${
+                    unconfirmedCases.length > 0 ? 'bg-orange-100' : 'bg-gray-100'
+                  }`}>
+                    <AlertCircle className={
+                      unconfirmedCases.length > 0 ? 'text-orange-500' : 'text-gray-500'
+                    } size={24} />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-800">待確認案件</h3>
+                    <p className="text-sm text-gray-500">
+                      {unconfirmedCases.length > 0 
+                        ? `${unconfirmedCases.length} 件待處理` 
+                        : '目前無待確認'}
+                    </p>
+                  </div>
+                </div>
+                <ArrowRight className="text-gray-400" size={20} />
+              </div>
+            </Card>
+          </Link>
+        )}
+
         {isAdmin && (
           <Link to="/reports">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-3 bg-blue-100 rounded-xl">
@@ -196,11 +267,11 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
               <span className="text-gray-700">待確認的自主接案</span>
               <span className={`px-3 py-1 rounded-full text-sm ${
-                (stats?.cases?.unconfirmed_cases || 0) > 0 
+                unconfirmedCases.length > 0 
                   ? 'bg-sela-orange text-white' 
                   : 'bg-gray-200 text-gray-500'
               }`}>
-                {stats?.cases?.unconfirmed_cases || 0} 件
+                {unconfirmedCases.length} 件
               </span>
             </div>
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -209,11 +280,11 @@ export default function DashboardPage() {
                 {stats?.staffCount || 0} 人
               </span>
             </div>
-            {unconfirmedCases.filter(c => c.days_pending > 5).length > 0 && (
+            {overdueCases.length > 0 && (
               <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                <span className="text-gray-700">超過 5 天未確認</span>
+                <span className="text-gray-700">超過 7 天未確認</span>
                 <span className="px-3 py-1 rounded-full text-sm bg-red-500 text-white">
-                  {unconfirmedCases.filter(c => c.days_pending > 5).length} 件
+                  {overdueCases.length} 件
                 </span>
               </div>
             )}

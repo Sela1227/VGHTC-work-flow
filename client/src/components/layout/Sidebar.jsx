@@ -7,6 +7,9 @@ import {
   Settings,
   Calculator,
   TrendingUp,
+  BarChart3,
+  AlertCircle,
+  Wrench,
   X,
 } from 'lucide-react';
 
@@ -17,15 +20,18 @@ export default function Sidebar({ isOpen, onClose }) {
   const menuItems = [
     { to: '/', icon: LayoutDashboard, label: '儀表板' },
     { to: '/cases', icon: FileText, label: isAdmin ? '案件管理' : '我的案件' },
+    { to: '/my-stats', icon: BarChart3, label: '我的統計' },
   ];
 
   // 管理者選單
   if (isAdmin) {
     menuItems.push(
+      { to: '/unconfirmed', icon: AlertCircle, label: '待確認案件', highlight: true },
       { to: '/points', icon: Calculator, label: '點數管理' },
       { to: '/reports', icon: TrendingUp, label: '月報表' },
       { to: '/staff', icon: Users, label: '同仁管理' },
       { to: '/case-types', icon: Settings, label: '案件類型' },
+      { to: '/system', icon: Wrench, label: '系統設定' },
     );
   }
 
@@ -60,6 +66,8 @@ export default function Sidebar({ isOpen, onClose }) {
                 `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                   isActive
                     ? 'bg-sela-orange text-white'
+                    : item.highlight
+                    ? 'text-orange-600 hover:bg-orange-50 font-medium'
                     : 'text-gray-600 hover:bg-orange-50 hover:text-sela-orange'
                 }`
               }
@@ -69,6 +77,11 @@ export default function Sidebar({ isOpen, onClose }) {
             </NavLink>
           ))}
         </nav>
+
+        {/* 版本資訊 */}
+        <div className="absolute bottom-4 left-4 right-4 text-center">
+          <p className="text-xs text-gray-400">v1.0.0</p>
+        </div>
       </aside>
     </>
   );
