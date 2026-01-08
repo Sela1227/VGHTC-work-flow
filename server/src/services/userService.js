@@ -2,16 +2,27 @@ const { pool } = require('../config/database');
 const bcrypt = require('bcryptjs');
 
 class UserService {
-  // 取得所有使用者（排除超級管理者）
-  async getAllUsers() {
-    const result = await pool.query(`
+  // 取得所有使用者（對應 controller 的 getUsers）
+  async getUsers(role) {
+    let query = `
       SELECT id, employee_id, name, role, is_active, created_at, updated_at
       FROM users
       WHERE role != 'super_admin'
+    `;
+    const params = [];
+
+    if (role) {
+      query += ' AND role = $1';
+      params.push(role);
+    }
+
+    query += `
       ORDER BY 
         CASE role WHEN 'admin' THEN 1 ELSE 2 END,
         employee_id
-    `);
+    `;
+
+    const result = await pool.query(query, params);
     return result.rows;
   }
 
@@ -82,6 +93,26 @@ class UserService {
     return result.rows[0];
   }
 
+  // 停用/啟用使用者（對應 controller 的 deleteUser）
+  async deleteUser(id) {
+    const user = await this.getUserById(id);
+    if (!user) {
+      throw new Error('使用者不存在');
+    }
+    if (user.role === 'super_admin') {
+      throw new Error('無法停用超級管理者');
+    }
+
+    const result = await pool.query(`
+      UPDATE users 
+      SET is_active = NOT is_active, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1
+      RETURNING id, employee_id, name, role, is_active
+    `, [id]);
+
+    return result.rows[0];
+  }
+
   // 重設密碼為 0000
   async resetPassword(id) {
     const user = await this.getUserById(id);
@@ -100,26 +131,6 @@ class UserService {
     `, [hashedPassword, id]);
 
     return { message: '密碼已重設為 0000' };
-  }
-
-  // 停用/啟用使用者
-  async toggleUserStatus(id) {
-    const user = await this.getUserById(id);
-    if (!user) {
-      throw new Error('使用者不存在');
-    }
-    if (user.role === 'super_admin') {
-      throw new Error('無法停用超級管理者');
-    }
-
-    const result = await pool.query(`
-      UPDATE users 
-      SET is_active = NOT is_active, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $1
-      RETURNING id, employee_id, name, role, is_active
-    `, [id]);
-
-    return result.rows[0];
   }
 }
 
