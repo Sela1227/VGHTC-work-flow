@@ -23,7 +23,7 @@ function App() {
     return <Loading fullScreen />;
   }
 
-  // 未登入
+  // 未登入 → 跳到登入頁
   if (!user) {
     return (
       <Routes>
@@ -33,7 +33,7 @@ function App() {
     );
   }
 
-  // 需要修改密碼
+  // 需要修改密碼 → 跳到修改密碼頁
   if (user.mustChangePassword) {
     return (
       <Routes>
@@ -45,12 +45,15 @@ function App() {
 
   const isAdmin = ['super_admin', 'admin'].includes(user.role);
 
-  // 已登入
+  // 已登入 → 預設顯示儀表板
   return (
     <MainLayout>
       <Routes>
+        {/* 儀表板為首頁 */}
         <Route path="/" element={<DashboardPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+        
+        {/* 一般功能 */}
         <Route path="/cases" element={<CasesPage />} />
         <Route path="/my-stats" element={<MyStatsPage />} />
         <Route path="/change-password" element={<ChangePasswordPage />} />
@@ -69,6 +72,7 @@ function App() {
           </>
         )}
         
+        {/* 其他路徑都導向儀表板 */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </MainLayout>
