@@ -34,12 +34,12 @@ export default function PointsPage() {
       setLoading(true);
       const [pointsData, staffData, adjData] = await Promise.all([
         pointsService.getAllCurrentPoints(),
-        userService.getAll(),
+        userService.getUsers('staff'),
         pointsService.getAdjustments(),
       ]);
-      setAllPoints(pointsData);
-      setStaff((staffData || []).filter(s => s.role === 'staff'));
-      setAdjustments(adjData);
+      setAllPoints(pointsData || []);
+      setStaff(staffData || []);
+      setAdjustments(adjData || []);
     } catch (error) {
       console.error('載入失敗:', error);
     } finally {

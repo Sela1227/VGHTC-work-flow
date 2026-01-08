@@ -1,8 +1,16 @@
 import api from './api';
 
 const userService = {
+  // 取得所有使用者（同仁管理用）
   async getAll() {
     const response = await api.get('/users');
+    return response.data;
+  },
+
+  // 取得指定角色的使用者（案件指派用）
+  async getUsers(role) {
+    const params = role ? `?role=${role}` : '';
+    const response = await api.get(`/users${params}`);
     return response.data;
   },
 
