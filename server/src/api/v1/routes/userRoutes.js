@@ -18,6 +18,9 @@ router.post('/', authorize('super_admin', 'admin'), userController.createUser);
 // 更新使用者 (管理者)
 router.put('/:id', authorize('super_admin', 'admin'), userController.updateUser);
 
+// 停用/啟用使用者 (管理者)
+router.patch('/:id/toggle', authorize('super_admin', 'admin'), userController.toggleStatus);
+
 // 刪除使用者 (管理者)
 router.delete('/:id', authorize('super_admin', 'admin'), userController.deleteUser);
 

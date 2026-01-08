@@ -5,7 +5,6 @@ class PointsService {
   async getCurrentPoints(userId) {
     const yearMonth = new Date().toISOString().slice(0, 7);
 
-    // 確保有當月記錄
     await pool.query(
       `INSERT INTO monthly_points (user_id, year_month, initial_points, current_points)
        VALUES ($1, $2, 31, 31)
@@ -28,7 +27,6 @@ class PointsService {
   async getAllCurrentPoints() {
     const yearMonth = new Date().toISOString().slice(0, 7);
 
-    // 為所有活躍的非超管使用者建立當月記錄
     await pool.query(
       `INSERT INTO monthly_points (user_id, year_month, initial_points, current_points)
        SELECT id, $1, 31, 31 FROM users 
@@ -64,15 +62,13 @@ class PointsService {
     return result.rows;
   }
 
-  // 點數調整（長假、其他任務等）
+  // 點數調整
   async adjustPoints(data, createdBy) {
     const { userId, points, adjustmentType, reason, redistribute } = data;
     const yearMonth = new Date().toISOString().slice(0, 7);
 
-    // 確保有當月記錄
     await this.getCurrentPoints(userId);
 
-    // 記錄調整
     await pool.query(
       `INSERT INTO points_adjustments 
        (user_id, year_month, adjustment_type, points, reason, redistribute, created_by)
@@ -80,7 +76,6 @@ class PointsService {
       [userId, yearMonth, adjustmentType, points, reason, redistribute, createdBy]
     );
 
-    // 調整點數
     if (adjustmentType === 'deduct') {
       await pool.query(
         `UPDATE monthly_points 
@@ -89,7 +84,6 @@ class PointsService {
         [points, userId, yearMonth]
       );
 
-      // 如果需要重新分配
       if (redistribute) {
         await this.redistributePoints(userId, points, yearMonth);
       }
@@ -107,7 +101,6 @@ class PointsService {
 
   // 重新分配點數給其他人
   async redistributePoints(excludeUserId, totalPoints, yearMonth) {
-    // 取得其他活躍使用者數量
     const othersResult = await pool.query(
       `SELECT COUNT(*) as count FROM users 
        WHERE id != $1 AND is_active = true AND role = 'staff'`,
@@ -119,7 +112,6 @@ class PointsService {
 
     const pointsPerPerson = totalPoints / othersCount;
 
-    // 分配給其他人
     await pool.query(
       `UPDATE monthly_points mp
        SET current_points = current_points + $1, updated_at = NOW()
@@ -154,11 +146,80 @@ class PointsService {
     return result.rows;
   }
 
+  // 刪除調整記錄（並還原點數）
+  async deleteAdjustment(id) {
+    // 取得調整記錄
+    const adjResult = await pool.query(
+      'SELECT * FROM points_adjustments WHERE id = $1',
+      [id]
+    );
+
+    if (adjResult.rows.length === 0) {
+      throw new Error('調整記錄不存在');
+    }
+
+    const adj = adjResult.rows[0];
+
+    // 還原點數
+    if (adj.adjustment_type === 'deduct') {
+      // 原本是扣除，現在加回來
+      await pool.query(
+        `UPDATE monthly_points 
+         SET current_points = current_points + $1, updated_at = NOW()
+         WHERE user_id = $2 AND year_month = $3`,
+        [adj.points, adj.user_id, adj.year_month]
+      );
+
+      // 如果當初有重分配，從其他人扣回來
+      if (adj.redistribute) {
+        await this.reverseRedistribute(adj.user_id, adj.points, adj.year_month);
+      }
+    } else {
+      // 原本是增加，現在扣除
+      await pool.query(
+        `UPDATE monthly_points 
+         SET current_points = current_points - $1, updated_at = NOW()
+         WHERE user_id = $2 AND year_month = $3`,
+        [adj.points, adj.user_id, adj.year_month]
+      );
+    }
+
+    // 刪除記錄
+    await pool.query('DELETE FROM points_adjustments WHERE id = $1', [id]);
+
+    return { message: '調整記錄已刪除，點數已還原' };
+  }
+
+  // 還原重分配的點數
+  async reverseRedistribute(excludeUserId, totalPoints, yearMonth) {
+    const othersResult = await pool.query(
+      `SELECT COUNT(*) as count FROM users 
+       WHERE id != $1 AND is_active = true AND role = 'staff'`,
+      [excludeUserId]
+    );
+
+    const othersCount = parseInt(othersResult.rows[0].count);
+    if (othersCount === 0) return;
+
+    const pointsPerPerson = totalPoints / othersCount;
+
+    await pool.query(
+      `UPDATE monthly_points mp
+       SET current_points = current_points - $1, updated_at = NOW()
+       FROM users u
+       WHERE mp.user_id = u.id 
+         AND mp.year_month = $2 
+         AND u.id != $3 
+         AND u.is_active = true 
+         AND u.role = 'staff'`,
+      [pointsPerPerson, yearMonth, excludeUserId]
+    );
+  }
+
   // 月初重置點數
   async monthlyReset() {
     const yearMonth = new Date().toISOString().slice(0, 7);
 
-    // 為所有活躍使用者建立新月份記錄
     const result = await pool.query(
       `INSERT INTO monthly_points (user_id, year_month, initial_points, current_points)
        SELECT id, $1, 31, 31 FROM users 

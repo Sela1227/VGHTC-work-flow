@@ -9,6 +9,7 @@ import {
   Key, 
   UserX, 
   UserCheck,
+  Trash2,
   X 
 } from 'lucide-react';
 
@@ -72,7 +73,7 @@ export default function StaffPage() {
       handleCloseModal();
       loadUsers();
     } catch (error) {
-      alert(error.response?.data?.message || error.message || '操作失敗');
+      alert(error.message || '操作失敗');
     }
   };
 
@@ -82,7 +83,7 @@ export default function StaffPage() {
       await userService.resetPassword(user.id);
       alert('密碼已重設為 0000');
     } catch (error) {
-      alert(error.response?.data?.message || error.message || '重設失敗');
+      alert(error.message || '重設失敗');
     }
   };
 
@@ -93,7 +94,17 @@ export default function StaffPage() {
       await userService.toggleStatus(user.id);
       loadUsers();
     } catch (error) {
-      alert(error.response?.data?.message || error.message || '操作失敗');
+      alert(error.message || '操作失敗');
+    }
+  };
+
+  const handleDelete = async (user) => {
+    if (!confirm(`確定要永久刪除 ${user.name}？\n\n此操作無法復原！`)) return;
+    try {
+      await userService.delete(user.id);
+      loadUsers();
+    } catch (error) {
+      alert(error.message || '刪除失敗');
     }
   };
 
@@ -159,7 +170,7 @@ export default function StaffPage() {
                       </span>
                     </td>
                     <td className="py-3 px-4">
-                      <div className="flex gap-2">
+                      <div className="flex gap-1">
                         <button
                           onClick={() => handleOpenModal(user)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded"
@@ -178,12 +189,19 @@ export default function StaffPage() {
                           onClick={() => handleToggleStatus(user)}
                           className={`p-2 rounded ${
                             user.is_active 
-                              ? 'text-red-600 hover:bg-red-50' 
+                              ? 'text-yellow-600 hover:bg-yellow-50' 
                               : 'text-green-600 hover:bg-green-50'
                           }`}
                           title={user.is_active ? '停用' : '啟用'}
                         >
                           {user.is_active ? <UserX size={18} /> : <UserCheck size={18} />}
+                        </button>
+                        <button
+                          onClick={() => handleDelete(user)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded"
+                          title="刪除"
+                        >
+                          <Trash2 size={18} />
                         </button>
                       </div>
                     </td>

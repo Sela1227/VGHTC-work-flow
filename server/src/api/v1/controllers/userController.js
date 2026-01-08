@@ -42,7 +42,17 @@ class UserController {
     }
   }
 
-  // DELETE /api/v1/users/:id
+  // PATCH /api/v1/users/:id/toggle - 停用/啟用
+  async toggleStatus(req, res, next) {
+    try {
+      const result = await userService.toggleStatus(req.params.id);
+      res.json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // DELETE /api/v1/users/:id - 真正刪除
   async deleteUser(req, res, next) {
     try {
       const result = await userService.deleteUser(req.params.id);

@@ -2,7 +2,7 @@ const { pool } = require('../config/database');
 const bcrypt = require('bcryptjs');
 
 class UserService {
-  // 取得使用者列表（Controller 呼叫 getUsers）
+  // 取得使用者列表
   async getUsers(role) {
     let query = `
       SELECT id, employee_id, name, role, is_active, created_at, updated_at
@@ -35,11 +35,10 @@ class UserService {
     return result.rows[0];
   }
 
-  // 建立使用者（Controller 傳入 req.body）
+  // 建立使用者
   async createUser(data, createdBy) {
     const { employeeId, name, role } = data;
     
-    // 檢查員編是否已存在
     const exists = await pool.query(
       'SELECT id FROM users WHERE employee_id = $1',
       [employeeId]
@@ -48,7 +47,6 @@ class UserService {
       throw new Error('員工編號已存在');
     }
 
-    // 預設密碼 0000
     const hashedPassword = await bcrypt.hash('0000', 10);
 
     const result = await pool.query(`
@@ -60,7 +58,7 @@ class UserService {
     return result.rows[0];
   }
 
-  // 更新使用者（包含員編）
+  // 更新使用者
   async updateUser(id, data) {
     const { employeeId, name, role } = data;
     
@@ -72,7 +70,6 @@ class UserService {
       throw new Error('無法修改超級管理者');
     }
 
-    // 如果要更新員編，檢查是否已被其他人使用
     if (employeeId && employeeId !== user.employee_id) {
       const exists = await pool.query(
         'SELECT id FROM users WHERE employee_id = $1 AND id != $2',
@@ -96,8 +93,8 @@ class UserService {
     return result.rows[0];
   }
 
-  // 停用/啟用（Controller 呼叫 deleteUser）
-  async deleteUser(id) {
+  // 停用/啟用使用者
+  async toggleStatus(id) {
     const user = await this.getUserById(id);
     if (!user) {
       throw new Error('使用者不存在');
@@ -114,6 +111,36 @@ class UserService {
     `, [id]);
 
     return result.rows[0];
+  }
+
+  // 真正刪除使用者
+  async deleteUser(id) {
+    const user = await this.getUserById(id);
+    if (!user) {
+      throw new Error('使用者不存在');
+    }
+    if (user.role === 'super_admin') {
+      throw new Error('無法刪除超級管理者');
+    }
+
+    // 檢查是否有關聯的案件
+    const cases = await pool.query(
+      'SELECT COUNT(*) as count FROM cases WHERE assigned_to = $1',
+      [id]
+    );
+
+    if (parseInt(cases.rows[0].count) > 0) {
+      throw new Error('此同仁有關聯案件，無法刪除。請先刪除或重新分配其案件。');
+    }
+
+    // 刪除點數記錄
+    await pool.query('DELETE FROM monthly_points WHERE user_id = $1', [id]);
+    await pool.query('DELETE FROM points_adjustments WHERE user_id = $1', [id]);
+    
+    // 刪除使用者
+    await pool.query('DELETE FROM users WHERE id = $1', [id]);
+
+    return { message: '同仁已刪除' };
   }
 
   // 重設密碼

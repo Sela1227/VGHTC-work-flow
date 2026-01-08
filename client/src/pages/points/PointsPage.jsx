@@ -5,7 +5,7 @@ import userService from '../../services/userService';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
-import { Calculator, Plus, Minus, Users } from 'lucide-react';
+import { Calculator, Plus, Minus, Users, Trash2 } from 'lucide-react';
 
 export default function PointsPage() {
   const { user } = useAuth();
@@ -34,11 +34,11 @@ export default function PointsPage() {
       setLoading(true);
       const [pointsData, staffData, adjData] = await Promise.all([
         pointsService.getAllCurrentPoints(),
-        userService.getUsers('staff'),
+        userService.getAll(),
         pointsService.getAdjustments(),
       ]);
       setAllPoints(pointsData);
-      setStaff(staffData);
+      setStaff((staffData || []).filter(s => s.role === 'staff'));
       setAdjustments(adjData);
     } catch (error) {
       console.error('載入失敗:', error);
@@ -65,6 +65,16 @@ export default function PointsPage() {
       loadData();
     } catch (error) {
       alert(error.message);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm('確定刪除此調整記錄？點數將會還原。')) return;
+    try {
+      await pointsService.deleteAdjustment(id);
+      loadData();
+    } catch (error) {
+      alert(error.message || '刪除失敗');
     }
   };
 
@@ -139,6 +149,7 @@ export default function PointsPage() {
                     <th className="text-left py-3 px-4">重分配</th>
                     <th className="text-left py-3 px-4">操作者</th>
                     <th className="text-left py-3 px-4">時間</th>
+                    <th className="text-left py-3 px-4">操作</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -160,6 +171,15 @@ export default function PointsPage() {
                       <td className="py-3 px-4">{a.created_by_name}</td>
                       <td className="py-3 px-4 text-sm text-gray-500">
                         {new Date(a.created_at).toLocaleString('zh-TW')}
+                      </td>
+                      <td className="py-3 px-4">
+                        <button
+                          onClick={() => handleDelete(a.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded"
+                          title="刪除"
+                        >
+                          <Trash2 size={18} />
+                        </button>
                       </td>
                     </tr>
                   ))}

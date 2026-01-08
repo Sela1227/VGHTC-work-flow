@@ -11,9 +11,14 @@ const pointsService = {
     return response.data;
   },
 
-  async getPointsHistory(userId, months = 6) {
-    const url = userId ? `/points/history/${userId}` : '/points/history';
-    const response = await api.get(url, { params: { months } });
+  async getPointsHistory(userId) {
+    const response = await api.get(`/points/history/${userId || ''}`);
+    return response.data;
+  },
+
+  async getAdjustments(yearMonth) {
+    const params = yearMonth ? `?yearMonth=${yearMonth}` : '';
+    const response = await api.get(`/points/adjustments${params}`);
     return response.data;
   },
 
@@ -22,9 +27,8 @@ const pointsService = {
     return response.data;
   },
 
-  async getAdjustments(yearMonth = null) {
-    const params = yearMonth ? { yearMonth } : {};
-    const response = await api.get('/points/adjustments', { params });
+  async deleteAdjustment(id) {
+    const response = await api.delete(`/points/adjustments/${id}`);
     return response.data;
   },
 

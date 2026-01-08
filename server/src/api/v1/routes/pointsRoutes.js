@@ -21,6 +21,9 @@ router.get('/adjustments', authorize('super_admin', 'admin'), pointsController.g
 // 點數調整 (管理者)
 router.post('/adjust', authorize('super_admin', 'admin'), pointsController.adjustPoints);
 
+// 刪除調整記錄 (管理者)
+router.delete('/adjustments/:id', authorize('super_admin', 'admin'), pointsController.deleteAdjustment);
+
 // 月初重置 (管理者)
 router.post('/monthly-reset', authorize('super_admin', 'admin'), pointsController.monthlyReset);
 

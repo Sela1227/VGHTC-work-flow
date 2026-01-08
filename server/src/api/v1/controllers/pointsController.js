@@ -21,13 +21,23 @@ class PointsController {
     }
   }
 
-  // GET /api/v1/points/history/:userId
+  // GET /api/v1/points/history/:userId?
   async getPointsHistory(req, res, next) {
     try {
       const userId = req.params.userId || req.user.id;
-      const { months } = req.query;
-      const history = await pointsService.getPointsHistory(userId, months ? parseInt(months) : 6);
+      const history = await pointsService.getPointsHistory(userId);
       res.json({ success: true, data: history });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // GET /api/v1/points/adjustments
+  async getAdjustments(req, res, next) {
+    try {
+      const { yearMonth } = req.query;
+      const adjustments = await pointsService.getAdjustments(yearMonth);
+      res.json({ success: true, data: adjustments });
     } catch (error) {
       next(error);
     }
@@ -43,12 +53,11 @@ class PointsController {
     }
   }
 
-  // GET /api/v1/points/adjustments
-  async getAdjustments(req, res, next) {
+  // DELETE /api/v1/points/adjustments/:id
+  async deleteAdjustment(req, res, next) {
     try {
-      const { yearMonth } = req.query;
-      const adjustments = await pointsService.getAdjustments(yearMonth);
-      res.json({ success: true, data: adjustments });
+      const result = await pointsService.deleteAdjustment(req.params.id);
+      res.json({ success: true, data: result });
     } catch (error) {
       next(error);
     }
