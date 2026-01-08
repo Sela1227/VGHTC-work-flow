@@ -2,7 +2,7 @@ const { pool } = require('../config/database');
 const bcrypt = require('bcryptjs');
 
 class UserService {
-  // 取得所有使用者（對應 controller 的 getUsers）
+  // 取得使用者列表（Controller 呼叫 getUsers）
   async getUsers(role) {
     let query = `
       SELECT id, employee_id, name, role, is_active, created_at, updated_at
@@ -35,8 +35,10 @@ class UserService {
     return result.rows[0];
   }
 
-  // 建立使用者
-  async createUser({ employeeId, name, role }) {
+  // 建立使用者（Controller 傳入 req.body）
+  async createUser(data, createdBy) {
+    const { employeeId, name, role } = data;
+    
     // 檢查員編是否已存在
     const exists = await pool.query(
       'SELECT id FROM users WHERE employee_id = $1',
@@ -59,8 +61,9 @@ class UserService {
   }
 
   // 更新使用者（包含員編）
-  async updateUser(id, { employeeId, name, role }) {
-    // 檢查是否為超級管理者
+  async updateUser(id, data) {
+    const { employeeId, name, role } = data;
+    
     const user = await this.getUserById(id);
     if (!user) {
       throw new Error('使用者不存在');
@@ -93,7 +96,7 @@ class UserService {
     return result.rows[0];
   }
 
-  // 停用/啟用使用者（對應 controller 的 deleteUser）
+  // 停用/啟用（Controller 呼叫 deleteUser）
   async deleteUser(id) {
     const user = await this.getUserById(id);
     if (!user) {
@@ -113,7 +116,7 @@ class UserService {
     return result.rows[0];
   }
 
-  // 重設密碼為 0000
+  // 重設密碼
   async resetPassword(id) {
     const user = await this.getUserById(id);
     if (!user) {

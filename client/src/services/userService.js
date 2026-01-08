@@ -3,7 +3,7 @@ import api from './api';
 const userService = {
   async getAll() {
     const response = await api.get('/users');
-    return response.data.data;  // API 回傳 { success, data }
+    return response.data.data;
   },
 
   async getById(id) {

@@ -31,9 +31,10 @@ export default function StaffPage() {
     try {
       setLoading(true);
       const data = await userService.getAll();
-      setUsers(data);
+      setUsers(data || []);
     } catch (error) {
       console.error('載入失敗:', error);
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -71,7 +72,7 @@ export default function StaffPage() {
       handleCloseModal();
       loadUsers();
     } catch (error) {
-      alert(error.message);
+      alert(error.response?.data?.message || error.message || '操作失敗');
     }
   };
 
@@ -81,7 +82,7 @@ export default function StaffPage() {
       await userService.resetPassword(user.id);
       alert('密碼已重設為 0000');
     } catch (error) {
-      alert(error.message);
+      alert(error.response?.data?.message || error.message || '重設失敗');
     }
   };
 
@@ -92,7 +93,7 @@ export default function StaffPage() {
       await userService.toggleStatus(user.id);
       loadUsers();
     } catch (error) {
-      alert(error.message);
+      alert(error.response?.data?.message || error.message || '操作失敗');
     }
   };
 
@@ -106,8 +107,8 @@ export default function StaffPage() {
       staff: '同仁',
     };
     return (
-      <span className={`px-2 py-1 rounded text-sm ${styles[role]}`}>
-        {labels[role]}
+      <span className={`px-2 py-1 rounded text-sm ${styles[role] || styles.staff}`}>
+        {labels[role] || role}
       </span>
     );
   };
@@ -125,6 +126,11 @@ export default function StaffPage() {
       <Card>
         {loading ? (
           <div className="text-center py-8">載入中...</div>
+        ) : users.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <Users size={48} className="mx-auto mb-4 text-gray-300" />
+            <p>尚無同仁資料</p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
